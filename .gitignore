@@ -2,3 +2,8 @@
 .Rhistory
 .RData
 .Ruserdata
+<<<<<<< HEAD
+=======
+.Renviron
+Test.Rproj
+>>>>>>> ff93248fcf2eabfdce1004a3f396c436e7ed4901
