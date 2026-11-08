@@ -3,7 +3,7 @@
 dane %>%
   filter(Series.or.Movie == "Movie") %>%
   filter(str_detect(Director, "Woody Allen")) %>%
-  mutate(Release = as.Date(Release.Date, format = "%m/%d/%y")) %>%
+  mutate(Release = as.Date(Release.Date, format = "%d/%m/%y")) %>%
   drop_na(Release) %>%
   arrange(Release) %>%
   select(Title, Director, Release.Date, IMDb.Score) %>%
