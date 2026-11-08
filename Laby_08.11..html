@@ -1971,8 +1971,7 @@ danych albo edytujemy już istniejące kolumny.</p>
   )</code></pre>
 <p><strong>CHALLENGE 1:</strong> Jaki jest najstarszy film Woody’ego
 Allena dostępny na Netflixie?</p>
-<pre class="r"><code>library(here)
-ch1 &lt;- source(here(&quot;analiza_testowa&quot;, &quot;R&quot;, &quot;Netflix1.R&quot;))
+<pre class="r"><code>ch1 &lt;- source(&quot;./R/Netflix1.R&quot;)
 print(ch1)</code></pre>
 <p>W przypadku funkcji <em>case_when()</em> nie musimy pisać warunków
 tworzących zbiory wzajemnie rozłączne. Ewaluacja następuje po spełnieniu
@@ -2075,18 +2074,15 @@ kilką oraz łączyć kilka kolumn w jedną za pomocą funkcji
   head(10)</code></pre>
 <p><strong>CHALLENGE 2:</strong> Jakie są trzy najwyżej oceniane komedie
 dostępne w języku polskim?</p>
-<pre class="r"><code>library(here)
-ch2 &lt;- source(here(&quot;analiza_testowa&quot;, &quot;R&quot;, &quot;Netflix2.R&quot;))
+<pre class="r"><code>ch2 &lt;- source(&quot;./R/Netflix2.R&quot;)
 print(ch2)</code></pre>
 <p><strong>CHALLENGE 3:</strong> Dla produkcji z lat 2019 oraz 2020 jaki
 jest średni czas między premierą a pojawieniem się na Netflixie?</p>
-<pre class="r"><code>library(here)
-ch3 &lt;- source(here(&quot;analiza_testowa&quot;, &quot;R&quot;, &quot;netflix3.R&quot;))
+<pre class="r"><code>ch3 &lt;- source(&quot;./R/netflix3.R&quot;)
 print(ch3)</code></pre>
 <p><strong>CHALLENGE 4:</strong> Jakie są najpopularniejsze tagi dla
 produkcji dostępnych w języku polskim?</p>
-<pre class="r"><code>library(here)
-ch4 &lt;- source(here(&quot;analiza_testowa&quot;, &quot;R&quot;, &quot;Netflix4.R&quot;))
+<pre class="r"><code>ch4 &lt;- source(&quot;./R/Netflix4.R&quot;)
 print(ch4)</code></pre>
 </div>
 <div id="agregacja-danych" class="section level3">
@@ -2108,8 +2104,7 @@ wykonujemy operacje na zagregowanych danych.</p>
 <p><strong>CHALLENGE 5:</strong> Jakie są średnie oceny filmów
 wyprodukowanych w poszczególnych dekadach (tzn. lata 60, 70, 80, 90
 etc.)?</p>
-<pre class="r"><code>library(here)
-ch5 &lt;- source(here(&quot;analiza_testowa&quot;, &quot;R&quot;, &quot;Netflix5.R&quot;))
+<pre class="r"><code>ch5 &lt;- source(&quot;./R/Netflix5.R&quot;)
 print(ch5)</code></pre>
 </div>
 <div id="tabele-przestawne-dane-w-formacie-long-oraz-wide" class="section level3">
