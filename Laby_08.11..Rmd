@@ -1,0 +1,561 @@
+---
+title: "Podstawowe operacje w R - część 3."
+subtitle: 'Eksploracja danych'
+author: "Twoje imię i nazwisko"
+date: "`r Sys.Date()`"
+output:
+  rmdformats::downcute:
+    self_contained: true
+    thumbnails: true
+    lightbox: true
+    gallery: true
+    highlight: tango
+---
+
+Spis treści:
+
+Eksploracja danych z bibliotekami *dplyr*, *tidyr* oraz *stringr* \
+  - Podzbiory kolumn \
+  - Filtrowanie wierszy \
+  - Operatory logiczne, algebra Boola, prawa de Morgana \
+  - Tworzenie nowych kolumn (1x Challenge) \
+  - Wartości brakujące \
+  - Manipulowanie tekstem (3x Challenge) \
+  - Agregacja danych (1x Challenge) \
+  - Tabele przestawne, dane w formacie long oraz wide \
+  - Łączenie tabel \
+ 
+Przydatne materiały: \
+ - [dplyr cheatsheet](https://raw.githubusercontent.com/rstudio/cheatsheets/main/data-transformation.pdf) \
+ - [tidyr cheatsheet](https://raw.githubusercontent.com/rstudio/cheatsheets/main/tidyr.pdf) \
+ - [stringr cheatsheet](https://raw.githubusercontent.com/rstudio/cheatsheets/main/strings.pdf) \
+ - [ggplot2 cheatsheet](https://raw.githubusercontent.com/rstudio/cheatsheets/main/data-visualization.pdf) \
+ - [A. Kassambara - Guide to Create Beautiful Graphics in R](http://www.sthda.com/english/download/3-ebooks/5-guide-to-create-beautiful-graphics-in-r-book/).
+  
+```{r message=FALSE, warning=FALSE, include=FALSE}
+if(!require('tidyverse')) install.packages('tidyverse')
+library(tidyverse)
+```
+
+Dane pochodzą ze strony [https://flixgem.com/](https://flixgem.com/) (wersja zbioru danych z dnia 12 marca 2021). Dane zawierają informacje na temat 9425 filmów i seriali dostępnych na Netlix.
+
+```{r load-data, message=FALSE, warning=FALSE, include=FALSE}
+library(readr)
+knitr::opts_chunk$set(echo = TRUE)
+download.file("https://raw.githubusercontent.com/kflisikowski/ds/master/netflix-dataset.csv?raw=true", destfile ="dane.csv",mode="wb")
+dane<-read.csv(file="dane.csv",encoding ="UTF-8",header=TRUE,sep = ",")
+attach(dane)
+```
+
+## Eksploracja danych z bibliotekami dplyr oraz tidyr
+
+### Podzbiory kolumn
+
+Kolumny wybieramy po ich nazwach za pomocą funkcji *select()*. Możemy też usuwać kolumny, poprzedzając nazwę danej kolumny symbolem *-*.
+
+```{r pierwszy, eval=FALSE}
+dane %>%
+  select(Title, Runtime, IMDb.Score, Release.Date) %>%
+  head(5)
+```
+
+
+```{r drugi, eval=FALSE}
+dane %>%
+  select(-Netflix.Link, -IMDb.Link, -Image, -Poster, -TMDb.Trailer)%>%
+  head(5)
+```
+
+
+```{r trzeci, eval=FALSE}
+dane %>%
+  select(1:10)%>%
+  head(5)
+```
+
+
+```{r czwarty, eval=FALSE}
+dane %>%
+  select(Title:Runtime)%>%
+  head(5)
+```
+
+
+Przydatne funkcje podczas wybierania/usuwania kolumn: 
+ - *starts_with()* - wybieramy lub usuwamy kolumny zaczynające się danym ciągiem znaków 
+ - *ends_with()* - wybieramy lub usuwamy kolumny kończące się danym ciągiem znaków 
+ - *contains()* - wybieramy lub usuwamy kolumny zawierające dany ciąg znaków.
+ 
+```{r piaty, eval=FALSE}
+dane %>%
+  select(starts_with('IMDb'))%>% 
+  head(10)
+```
+
+
+```{r szosty, eval=FALSE}
+dane %>%
+  select(ends_with('Score'))%>% 
+  head(10)
+```
+
+
+```{r siodmy, eval=FALSE}
+dane %>%
+  select(contains('Date'))%>% 
+  head(10)
+```
+
+
+Za pomocą funkcji *matches()* wybieramy lub usuwamy kolumny zawierające dane wyrażenie regularne. Przydatne narzędzie w budowaniu i testowaniu wyrażeń regularnych jest pod linkiem [https://regex101.com/](https://regex101.com/).
+
+```{r osmy, eval=FALSE}
+dane %>%
+  select(matches('^[a-z]{5,6}$')) %>% 
+  head(10)
+```
+
+
+```{r dziewiaty, eval=FALSE}
+dane %>%
+  select(-matches('\\.'))%>% 
+  head(10)
+```
+
+
+Funkcja *select()* zawsze zwraca ramkę danych, natomiast mamy też możliwość zwrócenia wektora za pomocą funkcji *pull()*.
+
+
+```{r dziesiaty, eval=FALSE}
+dane %>%
+  select(IMDb.Score)%>% 
+  head(10)
+
+# dane %>%
+#   select(IMDb.Score) %>%
+#   unlist(use.names = FALSE)
+```
+
+
+```{r 11, eval=FALSE}
+dane %>%
+  pull(IMDb.Score)%>% 
+  head(10)
+```
+
+
+```{r 12, eval=FALSE}
+dane %>%
+  pull(IMDb.Score, Title)%>% 
+  head(10)
+```
+
+
+### Filtrowanie wierszy
+
+
+Wiersze filtrujemy za pomocą funkcji *filter()* korzystając z operatorów *==*, *!=*, *>*, *>=*, *<*, *<=*, *between()*. 
+
+```{r 13, eval=FALSE}
+dane %>%
+  filter(Series.or.Movie == "Series")%>% 
+  head(10)
+```
+
+
+```{r 14, eval=FALSE}
+dane %>%
+  filter(IMDb.Score > 8)%>% 
+  head(10)
+```
+
+
+### Operatory logiczne, algebra Boola, prawa de Morgana
+
+
+Operator logiczny *AND* oznaczany symbolem *&* 
+ - *FALSE & FALSE = FALSE* 
+ - *FALSE & TRUE = FALSE* 
+ - *TRUE & FALSE = FALSE* 
+ - *TRUE & TRUE = TRUE*
+ 
+ 
+```{r 15, eval=FALSE}
+dane %>%
+  filter(IMDb.Score >= 8 & Series.or.Movie == 'Series')%>% 
+  head(10)
+```
+
+
+Operator logiczny *OR* oznaczany symbolem *|* 
+ - *FALSE | FALSE = FALSE* 
+ - *FALSE | TRUE = TRUE* 
+ - *TRUE | FALSE = TRUE* 
+ - *TRUE | TRUE = TRUE*
+ 
+ 
+```{r 16, eval=FALSE}
+dane %>%
+  filter(IMDb.Score >= 9 | IMDb.Votes < 1000)%>% 
+  head(10)
+```
+
+
+Prawa de Morgana mówią, że gdy wchodzimy z negacją pod nawias, to OR zamienia się na AND (i na odwrót). 
+*not (A & B) = (not A) | (not B)* 
+*not (A | B) = (not A) & (not B)* 
+
+```{r 17, eval=FALSE}
+dane %>%
+  filter(!(IMDb.Score >= 9 | IMDb.Votes < 1000))%>% 
+  head(10)
+```
+
+
+
+```{r 18, eval=FALSE}
+dane %>%
+  filter(!(IMDb.Score >= 9) & !(IMDb.Votes < 1000))%>% 
+  head(10)
+```
+
+
+### Tworzenie nowych kolumn
+
+Za pomocą funkcji *mutate()* dodajemy nowe kolumny do ramki danych albo edytujemy już istniejące kolumny.
+
+
+```{r 19, eval=FALSE}
+dane %>%
+  mutate(score_category = if_else(IMDb.Score >= 5, 'Good', 'Poor')) %>%
+  select(Title, IMDb.Score, score_category)%>% 
+  head(10)
+```
+
+
+
+```{r 20, eval=FALSE}
+dane %>%
+  transmute(
+    Release = Release.Date %>% as.Date(format = '%m/%d/%y')
+    ,Netflix.Release = Netflix.Release.Date %>% as.Date(format = '%m/%d/%y')
+  )
+```
+
+
+**CHALLENGE 1:** Jaki jest najstarszy film Woody'ego Allena dostępny na Netflixie?
+
+```{r 21, eval=FALSE}
+# miejsce na kod
+```
+
+
+W przypadku funkcji *case_when()* nie musimy pisać warunków tworzących zbiory wzajemnie rozłączne. Ewaluacja następuje po spełnieniu pierwszego z warunków, po czym natychmiastowo następuje kolejna iteracja.
+
+
+```{r 22, eval=FALSE}
+dane %>%
+  mutate(score_category = case_when(
+    IMDb.Score <= 2 ~ 'Very Poor'
+    ,IMDb.Score <= 4 ~ 'Poor'
+    ,IMDb.Score <= 6 ~ 'Medium'
+    ,IMDb.Score <= 8 ~ 'Good'
+    ,IMDb.Score <= 10 ~ 'Very Good'
+    )) %>%
+  select(Title, IMDb.Score, score_category)%>% 
+  head(10)
+```
+
+
+Działania matematyczne wykonywane dla każdego wiersza i bazujące na kilku kolumnach wykonujemy przy pomocy funkcji *rowwise()*.
+
+
+```{r 23, eval=FALSE}
+dane %>%
+  mutate(avg_score = mean(c(IMDb.Score * 10
+                            ,Hidden.Gem.Score * 10
+                            ,Rotten.Tomatoes.Score
+                            ,Metacritic.Score)
+                          ,na.rm = TRUE) %>%
+           round(2)) %>%
+  select(Title, avg_score)%>% 
+  head(10)
+```
+
+
+
+```{r 24, eval=FALSE}
+dane %>% 
+  rowwise() %>%
+  mutate(avg_score = mean(c(IMDb.Score * 10
+                            ,Hidden.Gem.Score * 10
+                            ,Rotten.Tomatoes.Score
+                            ,Metacritic.Score)
+                          ,na.rm = TRUE) %>%
+           round(2)) %>%
+  select(Title, avg_score)%>% 
+  head(10)
+```
+
+
+
+Domyślnie kolumny tworzone są pomocą *mutate()* są na końcu tabeli. Za pomocą *relocate()* możemy zmieniać pozycje poszczególnych kolumn w tabeli.
+
+
+```{r 25, eval=FALSE}
+dane %>%
+  mutate(Popularity = if_else(IMDb.Votes > quantile(IMDb.Votes, 0.90, na.rm = TRUE), 'High', 'Not High')) %>%
+  relocate(Popularity, .after = Title)
+```
+
+
+Zmieniamy nazwy kolumn za pomocą funkcji *rename()*.
+
+
+```{r 26, eval=FALSE}
+dane %>%
+  rename(
+    Tytul = Title
+    ,Gatunek = Genre
+  )
+```
+
+
+### Wartości brakujące
+
+Za pomocą funkcji z biblioteki *tidyr* możemy okiełznać wartości brakujące: 
+ - *drop_na()* - usuwamy wiersze zawierające wartości brakujące we wskazanych kolumnach 
+ - *replace_na()* - zastępujemy wartości brakujące określoną stałą
+ - *fill()* - zastępujemy wartości brakujące poprzednią lub następną dostępną wartością.
+
+
+```{r 27, eval=FALSE}
+dane %>%
+  sapply(function(x) is.na(x) %>% sum())
+```
+
+
+
+```{r 28, eval=FALSE}
+dane %>%
+  drop_na(Hidden.Gem.Score)
+```
+
+
+
+```{r 29, eval=FALSE}
+dane %>%
+  mutate(Hidden.Gem.Score = replace_na(Hidden.Gem.Score, median(Hidden.Gem.Score, na.rm = TRUE))) %>%
+  sapply(function(x) is.na(x) %>% sum())
+```
+
+
+
+```{r 30, eval=FALSE}
+dane %>%
+  replace_na(list(Hidden.Gem.Score = median(dane$Hidden.Gem.Score, na.rm = TRUE))) %>%
+  sapply(function(x) is.na(x) %>% sum())
+```
+
+
+### Manipulowanie tekstem
+
+Biblioteka *stringr* zawiera dużo przydatnych funkcji do manipulacji tekstem oraz wyrażeniami regularnymi. Większość funkcji z tej biblioteki zaczyna się od *str_*.
+
+Q: Co można poprawić w poniższym kodzie, aby była zachowana konwencja stylu *tidyverse*?
+
+```{r 31, eval=FALSE}
+gatunki = dane$Genre %>%
+  paste0(collapse = ', ') %>%
+  str_extract_all('[A-Za-z]+') %>%
+  unlist() %>%
+  table() %>%
+  as.data.frame()
+
+gatunki %>%
+  arrange(-Freq)
+```
+
+
+
+```{r 32, eval=FALSE}
+dane %>%
+  mutate(poland_available = str_detect(Country.Availability, 'Poland')) %>%
+  filter(poland_available == TRUE) %>%
+  pull(Title)%>% 
+  head(10)
+```
+
+
+Za pomocą *separate()* możemy rozdzielać jedną kolumną na kilką oraz łączyć kilka kolumn w jedną za pomocą funkcji *unite()*.
+
+
+```{r 33, eval=FALSE}
+dane %>%
+  unite(
+    col = 'Scores'
+    ,c('Hidden.Gem.Score', 'IMDb.Score', 'Rotten.Tomatoes.Score', 'Metacritic.Score')
+    ,sep = ', '
+  ) %>%
+  select(Title, Scores)%>% 
+  head(10)
+```
+
+
+**CHALLENGE 2:** Jakie są trzy najwyżej oceniane komedie dostępne w języku polskim?
+
+
+```{r 34, eval=FALSE}
+# miejsce na kod
+```
+
+
+
+**CHALLENGE 3:** Dla produkcji z lat 2019 oraz 2020 jaki jest średni czas między premierą a pojawieniem się na Netflixie?
+
+
+```{r 35, eval=FALSE}
+# miejsce na kod
+```
+
+
+**CHALLENGE 4:** Jakie są najpopularniejsze tagi dla produkcji dostępnych w języku polskim?
+
+
+```{r 36, eval=FALSE}
+# miejsce na kod
+```
+
+
+### Agregacja danych
+
+Za pomocą funkcji *group_by()* oraz *summarize()* wykonujemy operacje na zagregowanych danych.
+
+
+```{r 37, eval=FALSE}
+dane %>%
+  group_by(Series.or.Movie) %>%
+  summarize(
+    count = n()
+    ,avg_imdb_score = mean(IMDb.Score, na.rm = TRUE) %>% round(2)
+    ,avg_imdb_votes = mean(IMDb.Votes, na.rm = TRUE) %>% round(0)
+    ,sum_awards = sum(Awards.Received, na.rm = TRUE)
+  )
+```
+
+
+
+```{r 38, eval=FALSE}
+dane %>%
+  group_by(Series.or.Movie, Runtime) %>%
+  summarize(n = n()) %>%
+  arrange(-n)
+```
+
+
+
+**CHALLENGE 5:** Jakie są średnie oceny filmów wyprodukowanych w poszczególnych dekadach (tzn. lata 60, 70, 80, 90 etc.)?
+
+
+```{r 39, eval=FALSE}
+# miejsce na kod
+```
+
+
+### Tabele przestawne, dane w formacie long oraz wide
+
+Dane w formacie *wide*: 
+ - wiersze reprezentują pojedyncze obserwacje 
+ - kolumny reprezentują atrybuty tych obserwacji 
+ - w komórkach znajdują się wartości poszczególnych atrybutów dla poszczególnych obserwacji.
+
+Dane w formacie *long*: 
+ - w pierwszej kolumnie mamy obserwacje (klucz obserwacji może składać się też z więcej niż jednej kolumny) 
+ - w drugiej kolumnie mamy atrybuty 
+ - w trzeciej kolumnie mamy wartości.
+
+Format *long* jest przydatny m. in. przy tworzeniu wykresów w bibliotece *ggplot2*.
+
+```{r 40}
+dane_pivot = dane %>%
+  select(Title, ends_with('Score'))
+```
+
+
+```{r 41}
+dane_pivot = dane_pivot %>%
+  pivot_longer(
+    cols = 2:5
+    ,names_to = 'Attribute'
+    ,values_to = 'Value'
+  )
+```
+
+
+
+```{r 42}
+dane_pivot = dane_pivot %>%
+  pivot_wider(
+    id_cols = 1
+    ,names_from = 'Attribute'
+    ,values_from = 'Value'
+  )
+```
+
+
+### Łączenie tabel
+
+
+```{r 43}
+oceny_metacritic = dane %>%
+  select(Title, Metacritic.Score) %>%
+  .[1:100,] %>%
+  drop_na()
+
+oceny_rotten_tomatoes = dane %>%
+  select(Title, Rotten.Tomatoes.Score) %>%
+  .[1:100,] %>%
+  drop_na()
+```
+
+
+Tabele łączymy po odpowiednich kluczach tak samo, jak robimy to w SQL.
+
+
+```{r 44}
+oceny_metacritic %>%
+  left_join(oceny_rotten_tomatoes, by = c('Title' = 'Title'))
+```
+
+
+```{r 45}
+oceny_metacritic %>%
+  right_join(oceny_rotten_tomatoes, by = c('Title' = 'Title'))
+```
+
+
+```{r 46}
+oceny_metacritic %>%
+  inner_join(oceny_rotten_tomatoes, by = c('Title' = 'Title'))
+```
+
+
+```{r 47}
+oceny_metacritic %>%
+  full_join(oceny_rotten_tomatoes, by = c('Title' = 'Title'))
+```
+
+
+```{r 48}
+oceny_metacritic %>%
+  anti_join(oceny_rotten_tomatoes, by = c('Title' = 'Title'))
+```
+
+
+
+```{r 49}
+oceny_rotten_tomatoes %>%
+  anti_join(oceny_metacritic, by = c('Title' = 'Title'))
+```
+
+
