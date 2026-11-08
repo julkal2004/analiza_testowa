@@ -246,8 +246,7 @@ dane %>%
 **CHALLENGE 1:** Jaki jest najstarszy film Woody'ego Allena dostępny na Netflixie?
 
 ```{r 21, eval=FALSE}
-library(here)
-ch1 <- source(here("analiza_testowa", "R", "Netflix1.R"))
+ch1 <- source("./R/Netflix1.R")
 print(ch1)
 ```
 
@@ -408,8 +407,7 @@ dane %>%
 
 
 ```{r 34, eval=FALSE}
-library(here)
-ch2 <- source(here("analiza_testowa", "R", "Netflix2.R"))
+ch2 <- source("./R/Netflix2.R")
 print(ch2)
 ```
 
@@ -419,8 +417,7 @@ print(ch2)
 
 
 ```{r 35, eval=FALSE}
-library(here)
-ch3 <- source(here("analiza_testowa", "R", "netflix3.R"))
+ch3 <- source("./R/netflix3.R")
 print(ch3)
 ```
 
@@ -429,7 +426,11 @@ print(ch3)
 
 
 ```{r 36, eval=FALSE}
+<<<<<<< HEAD
 ch4 <- source(here("./R/Netflix4.R"))
+=======
+ch4 <- source("./R/Netflix4.R")
+>>>>>>> 068dd65224784627339e41ba6e214aaf03db23ce
 print(ch4)
 ```
 
@@ -465,8 +466,7 @@ dane %>%
 
 
 ```{r 39, eval=FALSE}
-library(here)
-ch5 <- source(here("analiza_testowa", "R", "Netflix5.R"))
+ch5 <- source("./R/Netflix5.R")
 print(ch5)
 ```
 
