@@ -16,3 +16,23 @@ liczebnosc_grup <- tabela_wies_miasto %>%
   summarise(suma_respondentow = sum(n))
 
 print(liczebnosc_grup)
+
+# --- Zadanie 8 ---
+
+# 1. Tabela liczności odpowiedzi na pytanie o prognozę (ogółem)
+tabela_prognoza_ogolem <- cbos %>%
+  filter(!is.na(prognoza)) %>%
+  count(prognoza, sort = TRUE)
+
+print("Prognoza - ogółem:")
+print(tabela_prognoza_ogolem)
+
+# 2. Ograniczenie do pesymistów (oceniających teraźniejszość "W złym")
+tabela_prognoza_pesymisci <- cbos %>%
+  filter(kierunek == "W złym") %>%
+  filter(!is.na(prognoza)) %>%
+  count(prognoza, sort = TRUE) %>%
+  mutate(procent = 100 * n / sum(n))
+
+print("Prognoza - tylko oceniający sytuację 'W złym':")
+print(tabela_prognoza_pesymisci)
