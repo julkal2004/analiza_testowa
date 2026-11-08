@@ -246,7 +246,9 @@ dane %>%
 **CHALLENGE 1:** Jaki jest najstarszy film Woody'ego Allena dostępny na Netflixie?
 
 ```{r 21, eval=FALSE}
-# miejsce na kod
+library(here)
+ch1 <- source(here("analiza_testowa", "R", "Netflix1.R"))
+print(ch1)
 ```
 
 
@@ -406,7 +408,9 @@ dane %>%
 
 
 ```{r 34, eval=FALSE}
-# miejsce na kod
+library(here)
+ch2 <- source(here("analiza_testowa", "R", "Netflix2.R"))
+print(ch2)
 ```
 
 
@@ -415,7 +419,9 @@ dane %>%
 
 
 ```{r 35, eval=FALSE}
-# miejsce na kod
+library(here)
+ch3 <- source(here("analiza_testowa", "R", "netflix3.R"))
+print(ch3)
 ```
 
 
@@ -423,7 +429,9 @@ dane %>%
 
 
 ```{r 36, eval=FALSE}
-# miejsce na kod
+library(here)
+ch4 <- source(here("analiza_testowa", "R", "Netflix4.R"))
+print(ch4)
 ```
 
 
@@ -458,7 +466,9 @@ dane %>%
 
 
 ```{r 39, eval=FALSE}
-# miejsce na kod
+library(here)
+ch5 <- source(here("analiza_testowa", "R", "Netflix5.R"))
+print(ch5)
 ```
 
 
