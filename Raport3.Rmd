@@ -1,0 +1,319 @@
+---
+title: "Analiza danych z R — raport 3."
+subtitle: "Nieruchomości i badanie CBOS | praca w zespołach z GitHubem"
+output:
+  html_document:
+    toc: true
+    toc_depth: 2
+    number_sections: false
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+Na laboratorium pracujecie w zespołach 3-osobowych (ewentualnie 4-osobowych). Analizujecie **dwa rzeczywiste zbiory danych** z repozytoriów prowadzącego. Każde zadanie dotyczy informacji faktycznie zapisanych w pliku. Nie dopisujemy fikcyjnych obserwacji, adresów ani dat.
+
+**Czas:** trzy bloki po 45 minut. Między blokami przerwy po 10 minut.
+
+| Część | Plan |
+|:--|:--|
+| **Blok 1 — 45 min** | Repozytorium i podział pracy (15 min), nieruchomości: poznanie i kontrola danych (15 min), ceny i odległości (15 min) |
+| Przerwa | 10 min |
+| **Blok 2 — 45 min** | Nieruchomości: filtry i grupowanie (20 min), dane CBOS: odczyt, etykiety, liczności (25 min) |
+| Przerwa | 10 min |
+| **Blok 3 — 45 min** | CBOS: porównania grup i interpretacja (25 min), przegląd kodu i pull requesty (20 min) |
+
+## 0. Przygotowanie komputera: R, RStudio i Git
+
+**Wykonaj tę część przed laboratorium.** Instalacja nie wlicza się do 135 minut pracy na zajęciach. Potrzebujesz: połączenia internetowego, uprawnień do instalacji programów i własnego konta GitHub. Jeśli korzystasz z komputera w laboratorium uczelnianym i nie możesz instalować programów, zgłoś to prowadzącemu.
+
+### Krok 1. Zainstaluj programy
+
+| Program | Windows | macOS |
+|:--|:--|:--|
+| **R** (język) | Pobierz instalator z [CRAN dla Windows](https://cran.r-project.org/bin/windows/base/) | Pobierz odpowiedni instalator z [CRAN dla macOS](https://cran.r-project.org/bin/macosx/) — sprawdź, czy masz procesor Apple Silicon czy Intel |
+| **RStudio Desktop** (środowisko) | Pobierz instalator `.exe` z [Posit](https://posit.co/download/rstudio-desktop/) | Pobierz instalator `.dmg` z [Posit](https://posit.co/download/rstudio-desktop/) |
+| **Git** (kontrola wersji) | Zainstaluj [Git for Windows](https://git-scm.com/downloads/win); zachowaj domyślne opcje, w tym Git Credential Manager, jeśli jest proponowany | Otwórz aplikację **Terminal**, wpisz `git --version`. Jeżeli system zaproponuje instalację Command Line Tools, wykonaj ją. Możesz też użyć [instalatora Git dla macOS](https://git-scm.com/downloads/mac) |
+
+**Kolejność:** najpierw R, następnie RStudio, a później Git. Po instalacji Git zamknij i ponownie uruchom RStudio. Pobieraj programy z podanych oficjalnych stron.
+
+### Krok 2. Utwórz konto GitHub
+
+1. Wejdź na [github.com](https://github.com/) i załóż konto, jeśli go nie masz.
+2. Potwierdź adres e-mail. Zapamiętaj swoją nazwę użytkownika na GitHubie.
+3. Nie udostępniaj innym osobom hasła, tokenu ani kodów weryfikacyjnych. Współpraca odbywa się przez zaproszenia do repozytorium, nie przez wspólne konto.
+
+### Krok 3. Sprawdź, czy Git działa
+
+W RStudio otwórz **Tools → Terminal → New Terminal**. Wpisz:
+
+```{bash git-wersja, eval=FALSE}
+git --version
+```
+
+Powinien pojawić się numer wersji. Jeśli polecenie nie działa, sprawdź, czy Git jest zainstalowany; na Windows uruchom ponownie RStudio. Na macOS dokończ instalację narzędzi poleceń, jeżeli system o nią prosi.
+
+### Krok 4. Ustaw imię i e-mail autora commitów
+
+W tym samym terminalu wykonaj dwa polecenia, **wpisując własne dane**. E-mail powinien być zgodny z adresem dodanym do konta GitHub; możesz użyć także adresu `noreply` podanego w ustawieniach GitHub, jeśli chcesz chronić prywatność.
+
+```{bash git-tozsamosc, eval=FALSE}
+git config --global user.name "Imie Nazwisko"
+git config --global user.email "twoj-adres@example.com"
+```
+
+Sprawdź konfigurację:
+
+```{bash git-sprawdz, eval=FALSE}
+git config --global user.name
+git config --global user.email
+```
+
+Opcja `--global` oznacza ustawienie dla wszystkich lokalnych projektów tego użytkownika. Zrób to tylko na **własnym** komputerze; na komputerze współdzielonym zapytaj prowadzącego, jak ustawić dane bez modyfikowania konfiguracji innych osób.
+
+### Krok 5. Włącz Git w RStudio
+
+1. Otwórz **Tools → Global Options → Git/SVN**.
+2. Zaznacz **Enable version control interface for RStudio projects**.
+3. Sprawdź pole **Git executable**. Jeżeli RStudio nie odnalazło Git automatycznie, wskaż plik programu Git z instalacji (lokalizacja zależy od systemu).
+4. Zatwierdź ustawienia i w razie potrzeby uruchom ponownie RStudio.
+
+Panel **Git** pojawi się, gdy otworzysz projekt połączony z repozytorium Git. Samo włączenie opcji w pustym RStudio nie zawsze wyświetla ten panel.
+
+### Krok 6. Pierwszy test z GitHubem
+
+Na zajęciach właściciel zespołowego repozytorium zaprosi Cię jako współpracownika. Przyjmij zaproszenie w GitHubie, otwórz repozytorium, naciśnij **Code → HTTPS** i skopiuj adres (kończy się na `.git`). W RStudio wybierz **File → New Project → Version Control → Git**, wklej ten adres, wybierz folder i naciśnij **Create Project**.
+
+Jeżeli przy pierwszym pobieraniu lub wysyłaniu kodu pojawi się okno logowania, zaloguj się do GitHub przez przeglądarkę lub Git Credential Manager. **Zwykłe hasło do GitHub nie służy do uwierzytelniania operacji Git przez HTTPS.** Nie wklejaj hasła do kodu ani plików repozytorium.
+
+**Sprawdzenie przed laboratorium:** RStudio uruchamia `1 + 1` w konsoli R, polecenie `git --version` działa w terminalu, konto GitHub jest aktywne.
+
+## 1. Zespół i GitHub — 15 minut
+
+1. Utwórzcie jeden projekt na GitHubie, np. `analiza_testowa`. Właściciel dodaje pozostałe osoby jako **Collaborators**.
+2. Każda osoba klonuje repozytorium przez **RStudio → File → New Project → Version Control → Git**, zgodnie z krokiem 6 instrukcji konfiguracji.
+3. Umieśćcie ten plik `.Rmd` w repozytorium jako instrukcję. Na razie nie edytujcie go wspólnie.
+4. Każda osoba otwiera terminal w projekcie i tworzy osobną gałąź (*branch*) **przed edycją kodu**, np. `git switch -c nieruchomosci`, `git switch -c cbos-opis` lub `git switch -c cbos-porownania`. Nazwa brancha musi być inna dla każdej osoby.
+5. W folderze `R/` utwórz plik przypisany do Twojej roli. Po sprawdzeniu kodu wykonasz commit i pull request pod koniec zajęć.
+
+| Osoba | Plik | Pytania |
+|:--|:--|:--|
+| A | `R/nieruchomosci.R` | zadania 1–4 |
+| B | `R/cbos_opis.R` | zadania 5–6 |
+| C | `R/cbos_porownania.R` | zadania 7–8 |
+| D (jeśli jest) | `wnioski.md` | kontrola wyników, krótkie interpretacje |
+
+W zespole trzyosobowym każda osoba dopisuje własny wniosek do `wnioski.md` w uzgodnionej kolejności. Pliki `R/*.R` powinny dać się uruchomić od początku, łącznie z odczytem danych i ładowaniem pakietów. Fragmenty kodu z instrukcji są przykładami — do swoich skryptów przenieście tylko te, które są potrzebne.
+
+```{r instalacja, eval=FALSE}
+# Wykonaj tylko raz, jeżeli brakuje pakietów.
+install.packages(c("dplyr", "tidyr", "haven"))
+```
+
+## 2. Nieruchomości: co wpływa na cenę jednostkową?
+
+Źródło: [Real Estate Valuation (UCI)](https://archive.ics.uci.edu/dataset/477/real+estate+valuation+data+set), [plik CSV w repozytorium prowadzącego](https://github.com/kflisikowsky/pandas_exercises/blob/62863036107888c0c7273c40e8d309a43f4da3a9/data/models/real_estate.csv). To **414 historycznych obserwacji** z rynku nieruchomości w New Taipei (Tajwan). Zmienna ceny oznacza 10 000 TWD za ping, a nie cenę całej nieruchomości. Przyjmujemy 1 ping ≈ 3,3 m².
+
+```{r nieruchomosci-dane}
+library(dplyr)
+library(tidyr)
+
+adres_nieruchomosci <- paste0(
+  "https://raw.githubusercontent.com/kflisikowsky/pandas_exercises/",
+  "62863036107888c0c7273c40e8d309a43f4da3a9/data/models/real_estate.csv"
+)
+raw_nier <- read.csv(adres_nieruchomosci, check.names = FALSE)
+stopifnot(nrow(raw_nier) == 414, ncol(raw_nier) == 7)
+
+nier <- raw_nier
+names(nier) <- c("id", "wiek_lat", "metro_m", "sklepy", "lat", "lon",
+                 "cena_10k_twd_ping")
+head(nier)
+```
+
+| Zmienna | Znaczenie |
+|:--|:--|
+| `wiek_lat` | wiek budynku w latach |
+| `metro_m` | odległość do najbliższej stacji MRT w metrach |
+| `sklepy` | liczba sklepów w otoczeniu |
+| `lat`, `lon` | współrzędne geograficzne |
+| `cena_10k_twd_ping` | cena jednostkowa w 10 000 TWD/ping |
+
+### Zadanie 1 — najpierw sprawdź tabelę
+
+Sprawdź liczbę rekordów i kolumn, typy danych, liczbę braków oraz podstawowe statystyki. Zweryfikuj, czy `id` jest unikatowe. Wskaż zmienne liczbowe, których nie powinno się interpretować jako zwykłych miar ilościowych (np. identyfikator).
+
+```{r nier-zad-1}
+# WASZE ROZWIĄZANIE
+# dim(), str(), summary(), colSums(is.na(...)), anyDuplicated()
+
+```
+
+### Zadanie 2 — przelicz cenę i sprawdź jej rozkład
+
+Dodaj kolumnę `cena_twd_m2`: `cena_10k_twd_ping * 10000 / 3.3`. Oblicz minimum, medianę, średnią i maksimum ceny za m². Wyświetl pięć nieruchomości o najwyższej cenie jednostkowej wraz z ich wiekiem, odległością od metra i liczbą sklepów.
+
+Pytanie: czy średnia jest wyższa od mediany? Co to mówi o rozkładzie cen? Nie interpretuj tej ceny jako wartości całego lokalu.
+
+```{r nier-zad-2}
+# WASZE ROZWIĄZANIE
+# mutate(), summarise(), arrange(desc(...)), slice_head(n = 5)
+
+```
+
+### Zadanie 3 — ile obserwacji jest blisko metra?
+
+Policz, ile nieruchomości znajduje się w odległości do 500 m od stacji oraz jaki to odsetek wszystkich rekordów. Następnie porównaj mediany ceny TWD/m² w dwóch grupach: **do 500 m** i **powyżej 500 m**.
+
+Wynik opisz jednym zdaniem z liczbami i jednostkami. To proste porównanie opisowe, a nie dowód, że odległość powoduje zmianę ceny.
+
+```{r nier-zad-3}
+# WASZE ROZWIĄZANIE
+# Wskazówka: mutate(blisko_metra = metro_m <= 500)
+# group_by(blisko_metra) %>% summarise(liczba = n(), mediana = median(...))
+
+```
+
+### Zadanie 4 — wiek, odległość i sklepy
+
+Podziel obserwacje na trzy strefy odległości od metra: **do 500 m**, **powyżej 500 do 1500 m**, **powyżej 1500 m**. Dla każdej strefy oblicz liczbę obserwacji, medianę ceny TWD/m², medianę wieku i średnią liczbę sklepów.
+
+Następnie sprawdź, czy wśród budynków w wieku najwyżej 20 lat ranking median stref pozostaje taki sam. Dlaczego porównanie wszystkich budynków może różnić się od porównania budynków młodszych?
+
+```{r nier-strefy-przyklad}
+# Przykład tworzenia zmiennej grupującej
+nier <- nier %>% mutate(
+  strefa = cut(metro_m, c(-Inf, 500, 1500, Inf),
+               labels = c("do 500 m", "500–1500 m", "ponad 1500 m"))
+)
+```
+
+```{r nier-zad-4}
+# WASZE ROZWIĄZANIE
+# group_by(strefa), summarise(), filter(wiek_lat <= 20)
+
+```
+
+## 3. CBOS: jak respondenci oceniali sytuację w Polsce w 2017 r.?
+
+Źródło: [plik CBOS w formacie SPSS](https://github.com/kflisikowsky/sad/blob/main/data/CBOS_201733_331_SPSS.sav) i [dokumentacja badania](https://github.com/kflisikowsky/sad/blob/main/data/CBOS_201733_331_DOK.pdf) w repozytorium prowadzącego. W pliku znajduje się **925 respondentów i 189 zmiennych**. Do dzisiejszych ćwiczeń wykorzystamy tylko kilka pytań.
+
+| Kolumna źródłowa | Znaczenie |
+|:--|:--|
+| `plec` | płeć respondenta |
+| `klm6` | wielkość miejscowości |
+| `q24` | czy sytuacja w Polsce zmierza w dobrym czy złym kierunku |
+| `q25` | przewidywanie sytuacji w Polsce w kolejnym roku |
+| `q15` | poziom wykształcenia |
+
+SPSS przechowuje opisy kategorii odpowiedzi. Funkcja `haven::as_factor()` pozwala zobaczyć je zamiast kodów liczbowych. Odpowiedzi „Trudno powiedzieć” i „Odmowa odpowiedzi” są odrębnymi kategoriami — nie należy automatycznie zamieniać ich na `NA`.
+
+```{r cbos-wczytanie}
+library(haven)
+adres_cbos <- paste0("https://raw.githubusercontent.com/kflisikowsky/sad/",
+                     "main/data/CBOS_201733_331_SPSS.sav")
+plik_cbos <- tempfile(fileext = ".sav")
+download.file(adres_cbos, plik_cbos, mode = "wb", quiet = TRUE)
+cbos_raw <- read_sav(plik_cbos)
+unlink(plik_cbos)
+
+cbos <- cbos_raw %>% transmute(
+  plec = as_factor(plec),
+  miejscowosc = as_factor(klm6),
+  kierunek = as_factor(q24),
+  prognoza = as_factor(q25),
+  wyksztalcenie = as_factor(q15)
+)
+dim(cbos)
+head(cbos)
+```
+
+### Zadanie 5 — poznaj respondentów
+
+Sprawdź liczbę obserwacji i braków. Przygotuj tabelę liczności i odsetków dla `plec` oraz `miejscowosc`. Jaki odsetek ankietowanych mieszkał na wsi, a jaki w miastach liczących co najmniej 500 tys. mieszkańców? Licz odsetki względem liczby **niebrakujących odpowiedzi** w danej zmiennej i podaj użyty mianownik.
+
+```{r cbos-zad-5}
+# WASZE ROZWIĄZANIE
+# count(), mutate(procent = 100 * n / sum(n)), filter(!is.na(...))
+
+```
+
+### Zadanie 6 — jak oceniano kierunek zmian w kraju?
+
+Oblicz liczebności i odsetki odpowiedzi na pytanie `kierunek`. Pokaż osobno odpowiedzi „W dobrym”, „W złym”, „Trudno powiedzieć” i odmowy, jeśli występują. Która odpowiedź była najczęstsza?
+
+Następnie policz udział odpowiedzi „W dobrym” **tylko wśród osób, które wybrały „W dobrym” albo „W złym”**. Porównaj go z odsetkiem w całej próbie. Wyjaśnij różnicę w mianowniku.
+
+```{r cbos-zad-6}
+# WASZE ROZWIĄZANIE
+# count(kierunek), filter(kierunek %in% c("W dobrym", "W złym"))
+
+```
+
+### Zadanie 7 — wieś i duże miasta
+
+Wybierz respondentów z kategorii `miejscowosc` równych `"wieś"` i `"miasto 500 000 i więcej"`. Dla każdej z tych dwóch grup policz **procent** odpowiedzi na pytanie `kierunek` (procent w obrębie grupy, nie w całej tabeli). Czy udział odpowiedzi „W złym” był taki sam?
+
+Sprawdź liczbę respondentów w obu grupach. Samo porównanie procentów bez liczebności może być mylące.
+
+```{r cbos-zad-7}
+# WASZE ROZWIĄZANIE
+# filter(...), count(miejscowosc, kierunek), group_by(miejscowosc)
+
+```
+
+### Zadanie 8 — ocena teraźniejszości a oczekiwania
+
+Zrób tabelę liczności odpowiedzi na `prognoza`. Następnie ogranicz dane do osób oceniających sytuację w kraju jako `"W złym"` i sprawdź, jak odpowiadały na pytanie o przyszłość. Która odpowiedź była najczęstsza w tej grupie? Czy na podstawie tej tabeli można wyciągać wnioski przyczynowe?
+
+```{r cbos-zad-8}
+# WASZE ROZWIĄZANIE
+# filter(kierunek == "W złym"), count(prognoza, sort = TRUE)
+
+```
+
+**Uwaga do interpretacji.** Dane pochodzą z roku 2017. Obliczenia na surowych rekordach są ćwiczeniem analitycznym. Nie przedstawiajcie ich jako współczesnych opinii Polaków ani jako reprezentatywnych oszacowań bez sprawdzenia dokumentacji i ewentualnego ważenia próby.
+
+## 4. GitHub — przegląd i połączenie pracy, 20 minut
+
+Pracujcie na osobnych gałęziach utworzonych **przed rozpoczęciem edycji**. Dla osoby B przykładowe polecenia (można również skorzystać z panelu Git w RStudio):
+
+```{bash git-przyklad, eval=FALSE}
+# Branch cbos-opis został utworzony na początku pracy.
+git add R/cbos_opis.R
+git commit -m "Dodaj opis ankiety CBOS"
+git push -u origin cbos-opis
+```
+
+Każda osoba używa **własnego** brancha i swojej ścieżki pliku. Następnie:
+
+1. Sprawdź, czy skrypt uruchamia się bez błędów oraz czy `git status` nie pokazuje przypadkowych zmian.
+2. Na GitHubie utwórz **Pull Request** do `main`. W dwóch zdaniach opisz, jakie pytania rozwiązuje skrypt i jak go sprawdzono.
+3. Inny członek zespołu czyta zmianę i dodaje komentarz (np. pytanie o mianownik procentów albo interpretację).
+4. Po poprawkach właściciel repozytorium scala PR. Każdy aktualizuje lokalne `main` poleceniami `git switch main` i `git pull`.
+5. Jeśli pojawi się konflikt lub ostrzeżenie o niezapisanych zmianach, nie nadpisujcie plików. Poproście prowadzącego o pomoc.
+
+**Wspólny rezultat:** trzy skrypty R, krótkie wnioski odnoszące się do wyników z obu rzeczywistych zbiorów oraz historia commitów i pull requestów. Wnioski powinny zawierać konkretne wartości, jednostki lub właściwe mianowniki procentów.
+
+## Zadania dodatkowe — jeśli zespół skończy wcześniej
+
+1. **Nieruchomości:** porównaj mediany ceny w trzech strefach metra osobno dla budynków w wieku do 10 lat oraz starszych niż 20 lat. Sprawdź liczebności grup.
+2. **CBOS:** wyświetl rozkład odpowiedzi `kierunek` w podziale na płeć i policz procenty wewnątrz każdej grupy.
+3. **CBOS:** sprawdź, które poziomy wykształcenia są najczęstsze. Nie traktuj numerów poziomów jako wartości pomiaru ilościowego.
+
+## Przydatne funkcje R
+
+| Cel | Funkcja |
+|:--|:--|
+| Wymiary i podgląd | `dim()`, `head()` |
+| Struktura i braki | `str()`, `is.na()` |
+| Statystyki opisowe | `summary()`, `mean()`, `median()` |
+| Nowa kolumna | `mutate()` |
+| Filtrowanie | `filter()`, `%in%`, `between()` |
+| Wybór zmiennych | `select()` |
+| Liczności | `count()` |
+| Grupowanie i agregacja | `group_by()`, `summarise()` |
+| Sortowanie | `arrange()` |
+| Etykiety ze SPSS | `haven::as_factor()` |
