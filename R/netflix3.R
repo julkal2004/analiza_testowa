@@ -1,8 +1,4 @@
 
-**CHALLENGE 3:** Dla produkcji z lat 2019 oraz 2020 jaki jest średni czas między premierą a pojawieniem się na Netflixie?
-  
-  
-
 library(dplyr)
 library(lubridate)
 
