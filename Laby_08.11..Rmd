@@ -429,8 +429,7 @@ print(ch3)
 
 
 ```{r 36, eval=FALSE}
-library(here)
-ch4 <- source(here("analiza_testowa", "R", "Netflix4.R"))
+ch4 <- source(here("./R/Netflix4.R"))
 print(ch4)
 ```
 
